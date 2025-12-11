@@ -79,7 +79,6 @@ No build scripts, no library linking, no extra configuration.
 
 `libhash` provides **portable replacements** for standard memory and string functions to ensure safe operation across different platforms:
 
-* `libhash_malloc` / `libhash_free` / `libhash_realloc`
 * `libhash_memset` / `libhash_memcpy`
 * `libhash_strlen` / `libhash_tolower` / `libhash_toupper`
 
