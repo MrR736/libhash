@@ -1,28 +1,34 @@
-# **WjCryptLib Header-Only (Fork of WjCryptLib)**
+# **libhash / WjCryptLib Header-Only Fork**
 
-A lightweight, header-only fork of the excellent **WjCryptLib** C cryptography library.
-Each header in the `src/` directory embeds the original `.h` **and** `.c` implementation, allowing you to drop in individual cryptographic algorithms with *zero* linking, *zero* build steps, and *zero* external dependencies.
+**Version:** 1.0.0
 
-This design is ideal for **embedded systems**, **sandboxed environments**, and **single-translation-unit** C/C++ projects where simplicity and portability matter.
+**libhash** is a lightweight, header-only fork of the popular **WjCryptLib** C cryptography library.
+Each header in the `src/` directory embeds both the original `.h` and `.c` implementation, allowing you to integrate cryptographic algorithms with:
+
+* **Zero linking**
+* **Zero build steps**
+* **Zero external dependencies**
+
+This makes it ideal for **embedded systems**, **sandboxed environments**, and **single-translation-unit** C/C++ projects.
 
 ---
 
 ## **Key Features**
 
 * **True header-only design**
-  Every algorithm is fully self-contained in a single header—no `.c` files, library builds, or extra sources required.
+  Every algorithm is fully self-contained in a single header. No `.c` files, library builds, or additional sources are required.
 
-* **Modular include-only usage**
+* **Modular usage**
   Include only the algorithms you need. No global umbrella header, no unnecessary code.
 
 * **C and C++ compatible**
-  Clean, dependency-minimal implementation that compiles in both C and C++ environments.
+  Minimal dependencies, fully portable, and works in both C and C++ projects.
 
-* **Great for constrained builds**
-  Perfect for embedded platforms, static builds, plugin systems, or any environment where compiling extra source files is undesirable.
+* **Great for constrained environments**
+  Perfect for embedded platforms, static builds, plugin systems, or sandboxed applications.
 
 * **Minimal dependencies**
-  Uses only standard C headers.
+  Only standard C headers are required.
 
 ---
 
@@ -38,7 +44,7 @@ src/
 ├── base32.h      // Base32 encoder/decoder
 ├── base64.h      // Base64 encoder/decoder
 ├── crc32.h       // CRC32
-├── crc32_ext.h   // CRC32 (extern variant)
+├── crc32_ext.h   // CRC32 (external variant)
 ├── md2.h         // MD2 hash
 ├── md4.h         // MD4 hash
 ├── md5.h         // MD5 hash
@@ -50,13 +56,13 @@ src/
 └── sha512.h      // SHA-512 hash
 ```
 
-Each file wraps its corresponding WjCryptLib `.h` and `.c` into a single unit.
+Each header wraps the corresponding WjCryptLib `.h` and `.c` source into a single self-contained file.
 
 ---
 
 ## **Usage**
 
-Just include the algorithm you need:
+Simply include the header for the algorithm you need:
 
 ```c
 #include "sha256.h"
@@ -69,17 +75,43 @@ No build scripts, no library linking, no extra configuration.
 
 ---
 
+## **Memory & Platform Abstraction**
+
+`libhash` provides **portable replacements** for standard memory and string functions to ensure safe operation across different platforms:
+
+* `libhash_malloc` / `libhash_free` / `libhash_realloc`
+* `libhash_memset` / `libhash_memcpy`
+* `libhash_strlen` / `libhash_tolower` / `libhash_toupper`
+
+These are automatically mapped to the standard functions when appropriate.
+
+---
+
+## **CMake Build & Tests**
+
+A lightweight CMake setup allows building tests or the shared library:
+
+```bash
+mkdir build && cd build
+cmake ..
+cmake --build .
+ctest
+```
+
+Tests are available for all algorithms in the `test/` directory.
+
+---
+
 ## **License**
 
-This project is licensed under **GPL-3.0**.
-See `LICENSE` for full terms.
+This project is licensed under **GPL-3.0**. See the `LICENSE` file for full terms.
 
 ---
 
 ## **Acknowledgments**
 
-Original cryptographic implementations by **Wishray/WjCryptLib**
-Source: [https://github.com/WaterJuice/WjCryptLib](https://github.com/WaterJuice/WjCryptLib)
+* Original cryptographic code: **Wishray/WjCryptLib**
+  Source: [https://github.com/WaterJuice/WjCryptLib](https://github.com/WaterJuice/WjCryptLib)
 
-Header-only conversion and restructuring by **MrR736**
-<[MrR736@users.github.com](mailto:MrR736@users.github.com)>
+* Header-only fork and restructuring: **MrR736**
+  <[MrR736@users.github.com](mailto:MrR736@users.github.com)>
