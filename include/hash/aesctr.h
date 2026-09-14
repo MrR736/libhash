@@ -20,7 +20,7 @@
 #ifndef __AESCTRI_H__
 #define __AESCTRI_H__
 
-#include <aes.h>
+#include "aes.h"
 
 #define AES_CTR_IV_SIZE 8
 

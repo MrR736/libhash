@@ -6,7 +6,8 @@
  *  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
  */
 
-#pragma once
+#ifndef RC4I_H
+#define RC4I_H
 
 #include <stdint.h>
 
@@ -53,4 +54,6 @@ extern void Rc4XorWithKey(const uint8_t*,uint32_t,uint32_t,const void*,void*,uin
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

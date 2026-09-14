@@ -8,7 +8,8 @@
  *  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
  */
 
-#pragma once
+#ifndef SHA512I_H
+#define SHA512I_H
 
 #include <stdint.h>
 
@@ -64,4 +65,6 @@ extern void Sha512Calculate(const void* Buffer, uint32_t BufferSize, SHA512_HASH
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
