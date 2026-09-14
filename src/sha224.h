@@ -40,16 +40,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -81,14 +81,14 @@
 #define SHA224_HASH_SIZE  28
 
 typedef struct {
-    uint64_t length;
-    uint32_t state[8];
-    uint32_t curlen;
-    uint8_t  buf[SHA224_BLOCK_SIZE];
+	uint64_t length;
+	uint32_t state[8];
+	uint32_t curlen;
+	uint8_t  buf[SHA224_BLOCK_SIZE];
 } Sha224Context;
 
 typedef struct {
-    uint8_t bytes[SHA224_HASH_SIZE];
+	uint8_t bytes[SHA224_HASH_SIZE];
 } SHA224_HASH;
 
 #ifdef __cplusplus

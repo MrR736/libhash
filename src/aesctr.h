@@ -20,7 +20,7 @@
 #ifndef __AESCTR_H__
 #define __AESCTR_H__
 
-#include <aes.h>
+#include "aes.h"
 
 #define AESCTR_BLOCK_SIZE AES_BLOCK_SIZE
 #define AES_CTR_IV_SIZE 8
@@ -66,7 +66,7 @@ static inline void CreateCurrentCipherBlock(AesCtrContext *Context) {
  * length processes of reinitialising an AES key.
  */
 LIBHASH_INLINE_API void AesCtrInitialise(AesCtrContext *Context,const AesContext *InitialisedAesContext,
-				    const uint8_t IV[AES_CTR_IV_SIZE]) {
+					const uint8_t IV[AES_CTR_IV_SIZE]) {
 	Context->Aes = *InitialisedAesContext;
 	memcpy(Context->IV, IV, AES_CTR_IV_SIZE);
 	Context->StreamIndex = 0;
@@ -148,7 +148,7 @@ LIBHASH_INLINE_API void AesCtrXor(AesCtrContext *Context,const void *InBuffer,vo
 		(preCipherBlock + AES_CTR_IV_SIZE)[7] = hash_cast(uint8_t,(cipherBlockIndex & 255));
 		AesEncrypt(&Context->Aes, preCipherBlock, encCipherBlock);
 		XorBuffers(hash_c_cast(uint8_t*,InBuffer) + outputOffset, encCipherBlock,
-				      uhash_cast(uint8_t*,OutBuffer)+outputOffset, chunkSize);
+					  uhash_cast(uint8_t*,OutBuffer)+outputOffset, chunkSize);
 	}
 	Context->StreamIndex += Size;
 	if (numIterations > 0) {

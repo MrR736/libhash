@@ -22,7 +22,6 @@
 
 #include <stdint.h>
 #include <memory.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(inline)
 #define inline __inline
@@ -37,16 +36,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -119,20 +118,20 @@ static const uint64_t SHAK512[80] = {
  *  Compress 1024-bits
  */
 static inline void Sha512TransformFunction(Sha512Context* Context, const uint8_t* Buffer) {
-    uint64_t S[8], W[80], t0, t1;
-    int i;
-    for(i=0; i<8; i++) { S[i] = Context->state[i]; }
-    for(i=0; i<16; i++) {
+	uint64_t S[8], W[80], t0, t1;
+	int i;
+	for(i=0; i<8; i++) { S[i] = Context->state[i]; }
+	for(i=0; i<16; i++) {
 	W[i] =	(hash_cast(uint64_t,((Buffer+(8*i))[0]&255))<<56)|(hash_cast(uint64_t,((Buffer+(8*i))[1] & 255))<<48)|
 		(hash_cast(uint64_t,((Buffer+(8*i))[2]&255))<<40)|(hash_cast(uint64_t,((Buffer+(8*i))[3] & 255))<<32)|
 		(hash_cast(uint64_t,((Buffer+(8*i))[4]&255))<<24)|(hash_cast(uint64_t,((Buffer+(8*i))[5] & 255))<<16)|
 		(hash_cast(uint64_t,((Buffer+(8*i))[6]&255))<<8) |(hash_cast(uint64_t,((Buffer+(8*i))[7] & 255)));
-    }
-    for(i=16; i<80; i++) {
+	}
+	for(i=16; i<80; i++) {
 	W[i] =	(S512(W[i-2],19)^S512(W[i-2],61)^(((W[i-2])&0xFFFFFFFFFFFFFFFFULL)>>hash_cast(uint64_t,6)))+W[i-7] +
 		(S512(W[i-15], 1)^S512(W[i-15], 8)^(((W[i-15])&0xFFFFFFFFFFFFFFFFULL)>>hash_cast(uint64_t,7)))+W[i-16];
-    }
-    for(i=0; i<80; i+=8) {
+	}
+	for(i=0; i<80; i+=8) {
 	Sha512Round(S[0],S[1],S[2],S[3],S[4],S[5],S[6],S[7],i+0);
 	Sha512Round(S[7],S[0],S[1],S[2],S[3],S[4],S[5],S[6],i+1);
 	Sha512Round(S[6],S[7],S[0],S[1],S[2],S[3],S[4],S[5],i+2);
@@ -141,8 +140,8 @@ static inline void Sha512TransformFunction(Sha512Context* Context, const uint8_t
 	Sha512Round(S[3],S[4],S[5],S[6],S[7],S[0],S[1],S[2],i+5);
 	Sha512Round(S[2],S[3],S[4],S[5],S[6],S[7],S[0],S[1],i+6);
 	Sha512Round(S[1],S[2],S[3],S[4],S[5],S[6],S[7],S[0],i+7);
-    }
-    for(i=0; i<8; i++) Context->state[i] = Context->state[i] + S[i];
+	}
+	for(i=0; i<8; i++) Context->state[i] = Context->state[i] + S[i];
 }
 
 /*
@@ -170,27 +169,27 @@ LIBHASH_INLINE_API void Sha512Initialise(Sha512Context* Context) {
  *  calling this function until all the data has been added. Then call Sha512Finalise to calculate the hash.
  */
 LIBHASH_INLINE_API void Sha512Update(Sha512Context* Context, const void* Buffer, uint32_t BufferSize) {
-    uint32_t n;
-    if(Context->curlen > sizeof(Context->buf)) return;
-    while(BufferSize > 0) {
+	uint32_t n;
+	if(Context->curlen > sizeof(Context->buf)) return;
+	while(BufferSize > 0) {
 	if(Context->curlen==0&&BufferSize>=SHA512_BLOCK_SIZE) {
-	    Sha512TransformFunction(Context,hash_c_cast(uint8_t*,Buffer));
-	    Context->length+=SHA512_BLOCK_SIZE * 8;
-	    Buffer=hash_c_cast(uint8_t*,Buffer)+SHA512_BLOCK_SIZE;
-	    BufferSize-=SHA512_BLOCK_SIZE;
+		Sha512TransformFunction(Context,hash_c_cast(uint8_t*,Buffer));
+		Context->length+=SHA512_BLOCK_SIZE * 8;
+		Buffer=hash_c_cast(uint8_t*,Buffer)+SHA512_BLOCK_SIZE;
+		BufferSize-=SHA512_BLOCK_SIZE;
 	} else {
-	    n = (((BufferSize)<(SHA512_BLOCK_SIZE - Context->curlen))?(BufferSize):(SHA512_BLOCK_SIZE-Context->curlen));
-	    memcpy(Context->buf + Context->curlen, Buffer, hash_cast(size_t,n));
-	    Context->curlen += n;
-	    Buffer = hash_c_cast(uint8_t*,Buffer)+n;
-	    BufferSize -= n;
-	    if(Context->curlen == SHA512_BLOCK_SIZE) {
+		n = (((BufferSize)<(SHA512_BLOCK_SIZE - Context->curlen))?(BufferSize):(SHA512_BLOCK_SIZE-Context->curlen));
+		memcpy(Context->buf + Context->curlen, Buffer, hash_cast(size_t,n));
+		Context->curlen += n;
+		Buffer = hash_c_cast(uint8_t*,Buffer)+n;
+		BufferSize -= n;
+		if(Context->curlen == SHA512_BLOCK_SIZE) {
 		Sha512TransformFunction(Context, Context->buf);
 		Context->length += 8*SHA512_BLOCK_SIZE;
 		Context->curlen = 0;
-	    }
+		}
 	}
-    }
+	}
 }
 
 /*
@@ -200,25 +199,25 @@ LIBHASH_INLINE_API void Sha512Update(Sha512Context* Context, const void* Buffer,
  *  calling this, Sha512Initialised must be used to reuse the context.
  */
 LIBHASH_INLINE_API void Sha512Finalise(Sha512Context* Context, SHA512_HASH* Digest) {
-    if (Context->curlen >= sizeof(Context->buf)) return;
-    Context->length += Context->curlen * 8ULL;
-    Context->buf[Context->curlen++] = hash_cast(uint8_t,0x80);
-    if (Context->curlen > 112) {
+	if (Context->curlen >= sizeof(Context->buf)) return;
+	Context->length += Context->curlen * 8ULL;
+	Context->buf[Context->curlen++] = hash_cast(uint8_t,0x80);
+	if (Context->curlen > 112) {
 	while (Context->curlen < SHA512_BLOCK_SIZE) Context->buf[Context->curlen++] = hash_cast(uint8_t,0);
 	Sha512TransformFunction(Context, Context->buf);
 	Context->curlen = 0;
-    }
-    while (Context->curlen < 120) Context->buf[Context->curlen++] = hash_cast(uint8_t,0);
-    (Context->buf+120)[0] = hash_cast(uint8_t,(((Context->length) >> 56) & 255));
-    (Context->buf+120)[1] = hash_cast(uint8_t,(((Context->length) >> 48) & 255));
-    (Context->buf+120)[2] = hash_cast(uint8_t,(((Context->length) >> 40) & 255));
-    (Context->buf+120)[3] = hash_cast(uint8_t,(((Context->length) >> 32) & 255));
-    (Context->buf+120)[4] = hash_cast(uint8_t,(((Context->length) >> 24) & 255));
-    (Context->buf+120)[5] = hash_cast(uint8_t,(((Context->length) >> 16) & 255));
-    (Context->buf+120)[6] = hash_cast(uint8_t,(((Context->length) >> 8) & 255));
-    (Context->buf +120)[7] = hash_cast(uint8_t,((Context->length) & 255));
-    Sha512TransformFunction(Context, Context->buf);
-    for (int i=0; i<8; i++) {
+	}
+	while (Context->curlen < 120) Context->buf[Context->curlen++] = hash_cast(uint8_t,0);
+	(Context->buf+120)[0] = hash_cast(uint8_t,(((Context->length) >> 56) & 255));
+	(Context->buf+120)[1] = hash_cast(uint8_t,(((Context->length) >> 48) & 255));
+	(Context->buf+120)[2] = hash_cast(uint8_t,(((Context->length) >> 40) & 255));
+	(Context->buf+120)[3] = hash_cast(uint8_t,(((Context->length) >> 32) & 255));
+	(Context->buf+120)[4] = hash_cast(uint8_t,(((Context->length) >> 24) & 255));
+	(Context->buf+120)[5] = hash_cast(uint8_t,(((Context->length) >> 16) & 255));
+	(Context->buf+120)[6] = hash_cast(uint8_t,(((Context->length) >> 8) & 255));
+	(Context->buf +120)[7] = hash_cast(uint8_t,((Context->length) & 255));
+	Sha512TransformFunction(Context, Context->buf);
+	for (int i=0; i<8; i++) {
 	(Digest->bytes+(8 * i))[0] = hash_cast(uint8_t,(((Context->state[i]) >> 56) & 255));
 	(Digest->bytes+(8 * i))[1] = hash_cast(uint8_t,(((Context->state[i]) >> 48) & 255));
 	(Digest->bytes+(8 * i))[2] = hash_cast(uint8_t,(((Context->state[i]) >> 40) & 255));
@@ -227,7 +226,7 @@ LIBHASH_INLINE_API void Sha512Finalise(Sha512Context* Context, SHA512_HASH* Dige
 	(Digest->bytes+(8 * i))[5] = hash_cast(uint8_t,(((Context->state[i]) >> 16) & 255));
 	(Digest->bytes+(8 * i))[6] = hash_cast(uint8_t,(((Context->state[i]) >> 8) & 255));
 	(Digest->bytes+(8 * i))[7] = hash_cast(uint8_t,((Context->state[i]) & 255));
-    }
+	}
 }
 
 

@@ -1,4 +1,22 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+/**
+ * WjCryptLib_crc32
+ *
+ * Copyright (C) 2026 MrR736 <MrR736@users.github.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifndef __CRC32_H__
 #define __CRC32_H__
 
@@ -15,17 +33,18 @@
 #define CRC32K_POLY			0x741B8CD7U	/* 3. CRC-32K (Koopman) */
 #define CRC32Q_POLY			0x814141ABU	/* 4. CRC-32Q (used in AIXM, aviation industry) */
 #define CRC32D_POLY			0xA833982BU	/* 5. CRC-32D (used in disk drive industry) */
-#define CRC32_XFER_POLY			0x000000AFU	/* 6. CRC-32XFER (used in XFER, ZMODEM protocols) */
-#define CRC32_AUTOSAR_POLY		0xF4ACFB13U	/* 7. CRC-32/AUTOSAR (used in automotive systems) */
+#define CRC32_XFER_POLY		0x000000AFU	/* 6. CRC-32XFER (used in XFER, ZMODEM protocols) */
+#define CRC32_AUTOSAR_POLY	0xF4ACFB13U	/* 7. CRC-32/AUTOSAR (used in automotive systems) */
 
-#define CRC32_POLY_REFLECTED		0xEDB88320U
-#define CRC32C_POLY_REFLECTED		0x82F63B78U
-#define CRC32K_POLY_REFLECTED		0xEB31D82EU
-#define CRC32Q_POLY_REFLECTED		0xD5828281U
-#define CRC32D_POLY_REFLECTED		0xD419CC15U
-#define CRC32_XFER_POLY_REFLECTED	0xF5000000U
+#define CRC32_POLY_REFLECTED			0xEDB88320U
+#define CRC32C_POLY_REFLECTED			0x82F63B78U
+#define CRC32K_POLY_REFLECTED			0xEB31D82EU
+#define CRC32Q_POLY_REFLECTED			0xD5828281U
+#define CRC32D_POLY_REFLECTED			0xD419CC15U
+#define CRC32_XFER_POLY_REFLECTED		0xF5000000U
 #define CRC32_AUTOSAR_POLY_REFLECTED	0xC8DF352FU
 
+#define CRC32_TOPBIT	0x80000000U
 #define CRC32_SHIFT	24
 
 #ifdef __cplusplus

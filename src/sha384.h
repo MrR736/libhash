@@ -22,8 +22,6 @@
 
 #include <stdint.h>
 #include <memory.h>
-#include <string.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(inline)
 #define inline __inline
@@ -38,16 +36,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -129,27 +127,27 @@ static const uint64_t SHA512_K[80] = {
  * Compress 1024-bit block (128 bytes) using SHA-512 core.
  */
 static inline void Sha384TransformFunction(Sha384Context* Context, const uint8_t* Buffer) {
-    uint64_t S[8], W[80];
-    uint64_t t0, t1;
-    int i;
+	uint64_t S[8], W[80];
+	uint64_t t0, t1;
+	int i;
 
-    for (i = 0; i < 8; ++i) S[i] = Context->state[i];
+	for (i = 0; i < 8; ++i) S[i] = Context->state[i];
 
-    /* Prepare W: read 16 big-endian 64-bit words (8 bytes each) */
-    for (i = 0; i < 16; ++i) {
+	/* Prepare W: read 16 big-endian 64-bit words (8 bytes each) */
+	for (i = 0; i < 16; ++i) {
 	const uint8_t *q = Buffer + (i * 8);
 	W[i] = (hash_cast(uint64_t,q[0]) << 56) | (hash_cast(uint64_t,q[1]) << 48) |
-	       (hash_cast(uint64_t,q[2]) << 40) | (hash_cast(uint64_t,q[3]) << 32) |
-	       (hash_cast(uint64_t,q[4]) << 24) | (hash_cast(uint64_t,q[5]) << 16) |
-	       (hash_cast(uint64_t,q[6]) << 8)  | (hash_cast(uint64_t,q[7]));
-    }
+		   (hash_cast(uint64_t,q[2]) << 40) | (hash_cast(uint64_t,q[3]) << 32) |
+		   (hash_cast(uint64_t,q[4]) << 24) | (hash_cast(uint64_t,q[5]) << 16) |
+		   (hash_cast(uint64_t,q[6]) << 8)  | (hash_cast(uint64_t,q[7]));
+	}
 
-    for (i = 16; i < 80; ++i) {
+	for (i = 16; i < 80; ++i) {
 	W[i] = sigma1_64(W[i - 2]) + W[i - 7] + sigma0_64(W[i - 15]) + W[i - 16];
-    }
+	}
 
-    /* main compression loop */
-    for (i = 0; i < 80; ++i) {
+	/* main compression loop */
+	for (i = 0; i < 80; ++i) {
 	t0 = S[7] + SIGMA1_64(S[4]) + CH64(S[4], S[5], S[6]) + SHA512_K[i] + W[i];
 	t1 = SIGMA0_64(S[0]) + MAJ64(S[0], S[1], S[2]);
 	S[7] = S[6];
@@ -160,9 +158,9 @@ static inline void Sha384TransformFunction(Sha384Context* Context, const uint8_t
 	S[2] = S[1];
 	S[1] = S[0];
 	S[0] = t0 + t1;
-    }
+	}
 
-    for (i = 0; i < 8; ++i) Context->state[i] += S[i];
+	for (i = 0; i < 8; ++i) Context->state[i] += S[i];
 }
 
 /*
@@ -190,37 +188,37 @@ LIBHASH_INLINE_API void Sha384Initialise(Sha384Context* Context) {
  * Adds data to the context; processes full 128-byte blocks directly.
  */
 LIBHASH_INLINE_API void Sha384Update(Sha384Context* Context, const void* Buffer, uint32_t BufferSize) {
-    uint32_t n;
-    if (Context->curlen > sizeof(Context->buf)) return;
+	uint32_t n;
+	if (Context->curlen > sizeof(Context->buf)) return;
 
-    while (BufferSize > 0) {
+	while (BufferSize > 0) {
 	if (Context->curlen == 0 && BufferSize >= SHA384_BLOCK_SIZE) {
-	    Sha384TransformFunction(Context, hash_c_cast(const uint8_t*, Buffer));
-	    /* update 128-bit bit-length safely */
-	    {
+		Sha384TransformFunction(Context, hash_c_cast(const uint8_t*, Buffer));
+		/* update 128-bit bit-length safely */
+		{
 		uint64_t old_low = Context->length_low;
 		Context->length_low += (SHA384_BLOCK_SIZE * 8ULL);
 		if (Context->length_low < old_low) Context->length_high++;
-	    }
-	    Buffer = hash_c_cast(const uint8_t*, Buffer) + SHA384_BLOCK_SIZE;
-	    BufferSize -= SHA384_BLOCK_SIZE;
+		}
+		Buffer = hash_c_cast(const uint8_t*, Buffer) + SHA384_BLOCK_SIZE;
+		BufferSize -= SHA384_BLOCK_SIZE;
 	} else {
-	    n = ((BufferSize < (SHA384_BLOCK_SIZE - Context->curlen)) ? BufferSize : (SHA384_BLOCK_SIZE - Context->curlen));
-	    memcpy(Context->buf + Context->curlen, Buffer, hash_cast(size_t, n));
-	    Context->curlen += n;
-	    Buffer = hash_c_cast(const uint8_t*, Buffer) + n;
-	    BufferSize -= n;
-	    if (Context->curlen == SHA384_BLOCK_SIZE) {
+		n = ((BufferSize < (SHA384_BLOCK_SIZE - Context->curlen)) ? BufferSize : (SHA384_BLOCK_SIZE - Context->curlen));
+		memcpy(Context->buf + Context->curlen, Buffer, hash_cast(size_t, n));
+		Context->curlen += n;
+		Buffer = hash_c_cast(const uint8_t*, Buffer) + n;
+		BufferSize -= n;
+		if (Context->curlen == SHA384_BLOCK_SIZE) {
 		Sha384TransformFunction(Context, Context->buf);
 		{
-		    uint64_t old_low = Context->length_low;
-		    Context->length_low += (SHA384_BLOCK_SIZE * 8ULL);
-		    if (Context->length_low < old_low) Context->length_high++;
+			uint64_t old_low = Context->length_low;
+			Context->length_low += (SHA384_BLOCK_SIZE * 8ULL);
+			if (Context->length_low < old_low) Context->length_high++;
 		}
 		Context->curlen = 0;
-	    }
+		}
 	}
-    }
+	}
 }
 
 /*
@@ -229,71 +227,71 @@ LIBHASH_INLINE_API void Sha384Update(Sha384Context* Context, const void* Buffer,
  * Pads, appends 128-bit length, performs final compression and writes 48-byte digest.
  */
 LIBHASH_INLINE_API void Sha384Finalise(Sha384Context* Context, SHA384_HASH* Digest) {
-    if (Context->curlen >= sizeof(Context->buf)) return;
+	if (Context->curlen >= sizeof(Context->buf)) return;
 
-    /* Save original byte count remaining (before padding) */
-    uint32_t orig_curlen = Context->curlen;
+	/* Save original byte count remaining (before padding) */
+	uint32_t orig_curlen = Context->curlen;
 
-    /* Append the '1' bit (0x80) as required by the standard */
-    Context->buf[Context->curlen++] = hash_cast(uint8_t, 0x80);
+	/* Append the '1' bit (0x80) as required by the standard */
+	Context->buf[Context->curlen++] = hash_cast(uint8_t, 0x80);
 
-    /* If there's not enough room for the 16-byte length, pad and compress */
-    if (Context->curlen > 112) {
-        while (Context->curlen < SHA384_BLOCK_SIZE)
-            Context->buf[Context->curlen++] = hash_cast(uint8_t, 0);
-        Sha384TransformFunction(Context, Context->buf);
-        Context->curlen = 0;
-    }
+	/* If there's not enough room for the 16-byte length, pad and compress */
+	if (Context->curlen > 112) {
+		while (Context->curlen < SHA384_BLOCK_SIZE)
+			Context->buf[Context->curlen++] = hash_cast(uint8_t, 0);
+		Sha384TransformFunction(Context, Context->buf);
+		Context->curlen = 0;
+	}
 
-    /* Pad remaining bytes with zeros until position 112 */
-    while (Context->curlen < 112)
-        Context->buf[Context->curlen++] = hash_cast(uint8_t, 0);
+	/* Pad remaining bytes with zeros until position 112 */
+	while (Context->curlen < 112)
+		Context->buf[Context->curlen++] = hash_cast(uint8_t, 0);
 
-    /* Now update the 128-bit bit length using the ORIGINAL remaining bytes (not including padding) */
-    {
-        uint64_t add_bits = (uint64_t)orig_curlen * 8ULL;
-        uint64_t old_low = Context->length_low;
-        Context->length_low += add_bits;
-        if (Context->length_low < old_low) Context->length_high += 1ULL;
-    }
+	/* Now update the 128-bit bit length using the ORIGINAL remaining bytes (not including padding) */
+	{
+		uint64_t add_bits = (uint64_t)orig_curlen * 8ULL;
+		uint64_t old_low = Context->length_low;
+		Context->length_low += add_bits;
+		if (Context->length_low < old_low) Context->length_high += 1ULL;
+	}
 
-    /* Append the 128-bit length in big-endian order: high 64 then low 64 */
-    Context->buf[112] = hash_cast(uint8_t,(Context->length_high >> 56) & 0xFF);
-    Context->buf[113] = hash_cast(uint8_t,(Context->length_high >> 48) & 0xFF);
-    Context->buf[114] = hash_cast(uint8_t,(Context->length_high >> 40) & 0xFF);
-    Context->buf[115] = hash_cast(uint8_t,(Context->length_high >> 32) & 0xFF);
-    Context->buf[116] = hash_cast(uint8_t,(Context->length_high >> 24) & 0xFF);
-    Context->buf[117] = hash_cast(uint8_t,(Context->length_high >> 16) & 0xFF);
-    Context->buf[118] = hash_cast(uint8_t,(Context->length_high >> 8) & 0xFF);
-    Context->buf[119] = hash_cast(uint8_t,(Context->length_high >> 0) & 0xFF);
+	/* Append the 128-bit length in big-endian order: high 64 then low 64 */
+	Context->buf[112] = hash_cast(uint8_t,(Context->length_high >> 56) & 0xFF);
+	Context->buf[113] = hash_cast(uint8_t,(Context->length_high >> 48) & 0xFF);
+	Context->buf[114] = hash_cast(uint8_t,(Context->length_high >> 40) & 0xFF);
+	Context->buf[115] = hash_cast(uint8_t,(Context->length_high >> 32) & 0xFF);
+	Context->buf[116] = hash_cast(uint8_t,(Context->length_high >> 24) & 0xFF);
+	Context->buf[117] = hash_cast(uint8_t,(Context->length_high >> 16) & 0xFF);
+	Context->buf[118] = hash_cast(uint8_t,(Context->length_high >> 8) & 0xFF);
+	Context->buf[119] = hash_cast(uint8_t,(Context->length_high >> 0) & 0xFF);
 
-    Context->buf[120] = hash_cast(uint8_t,(Context->length_low >> 56) & 0xFF);
-    Context->buf[121] = hash_cast(uint8_t,(Context->length_low >> 48) & 0xFF);
-    Context->buf[122] = hash_cast(uint8_t,(Context->length_low >> 40) & 0xFF);
-    Context->buf[123] = hash_cast(uint8_t,(Context->length_low >> 32) & 0xFF);
-    Context->buf[124] = hash_cast(uint8_t,(Context->length_low >> 24) & 0xFF);
-    Context->buf[125] = hash_cast(uint8_t,(Context->length_low >> 16) & 0xFF);
-    Context->buf[126] = hash_cast(uint8_t,(Context->length_low >> 8) & 0xFF);
-    Context->buf[127] = hash_cast(uint8_t,(Context->length_low >> 0) & 0xFF);
+	Context->buf[120] = hash_cast(uint8_t,(Context->length_low >> 56) & 0xFF);
+	Context->buf[121] = hash_cast(uint8_t,(Context->length_low >> 48) & 0xFF);
+	Context->buf[122] = hash_cast(uint8_t,(Context->length_low >> 40) & 0xFF);
+	Context->buf[123] = hash_cast(uint8_t,(Context->length_low >> 32) & 0xFF);
+	Context->buf[124] = hash_cast(uint8_t,(Context->length_low >> 24) & 0xFF);
+	Context->buf[125] = hash_cast(uint8_t,(Context->length_low >> 16) & 0xFF);
+	Context->buf[126] = hash_cast(uint8_t,(Context->length_low >> 8) & 0xFF);
+	Context->buf[127] = hash_cast(uint8_t,(Context->length_low >> 0) & 0xFF);
 
-    /* Final compression */
-    Sha384TransformFunction(Context, Context->buf);
+	/* Final compression */
+	Sha384TransformFunction(Context, Context->buf);
 
-    /* Output the first 48 bytes (first six 64-bit state words) in big-endian */
-    for (int i = 0; i < 6; ++i) {
-        uint64_t v = Context->state[i];
-        (Digest->bytes + (8 * i))[0] = hash_cast(uint8_t,(v >> 56) & 0xFF);
-        (Digest->bytes + (8 * i))[1] = hash_cast(uint8_t,(v >> 48) & 0xFF);
-        (Digest->bytes + (8 * i))[2] = hash_cast(uint8_t,(v >> 40) & 0xFF);
-        (Digest->bytes + (8 * i))[3] = hash_cast(uint8_t,(v >> 32) & 0xFF);
-        (Digest->bytes + (8 * i))[4] = hash_cast(uint8_t,(v >> 24) & 0xFF);
-        (Digest->bytes + (8 * i))[5] = hash_cast(uint8_t,(v >> 16) & 0xFF);
-        (Digest->bytes + (8 * i))[6] = hash_cast(uint8_t,(v >> 8) & 0xFF);
-        (Digest->bytes + (8 * i))[7] = hash_cast(uint8_t,(v >> 0) & 0xFF);
-    }
+	/* Output the first 48 bytes (first six 64-bit state words) in big-endian */
+	for (int i = 0; i < 6; ++i) {
+		uint64_t v = Context->state[i];
+		(Digest->bytes + (8 * i))[0] = hash_cast(uint8_t,(v >> 56) & 0xFF);
+		(Digest->bytes + (8 * i))[1] = hash_cast(uint8_t,(v >> 48) & 0xFF);
+		(Digest->bytes + (8 * i))[2] = hash_cast(uint8_t,(v >> 40) & 0xFF);
+		(Digest->bytes + (8 * i))[3] = hash_cast(uint8_t,(v >> 32) & 0xFF);
+		(Digest->bytes + (8 * i))[4] = hash_cast(uint8_t,(v >> 24) & 0xFF);
+		(Digest->bytes + (8 * i))[5] = hash_cast(uint8_t,(v >> 16) & 0xFF);
+		(Digest->bytes + (8 * i))[6] = hash_cast(uint8_t,(v >> 8) & 0xFF);
+		(Digest->bytes + (8 * i))[7] = hash_cast(uint8_t,(v >> 0) & 0xFF);
+	}
 
-    /* Clear the context for safety */
-    memset(Context, 0, sizeof(*Context));
+	/* Clear the context for safety */
+	memset(Context, 0, sizeof(*Context));
 }
 
 /*
@@ -303,10 +301,10 @@ LIBHASH_INLINE_API void Sha384Finalise(Sha384Context* Context, SHA384_HASH* Dige
  * function. Calculates the SHA384 hash of the buffer.
  */
 LIBHASH_INLINE_API void Sha384Calculate(const void* Buffer, uint32_t BufferSize, SHA384_HASH* Digest) {
-    Sha384Context ctx;
-    Sha384Initialise(&ctx);
-    Sha384Update(&ctx, Buffer, BufferSize);
-    Sha384Finalise(&ctx, Digest);
+	Sha384Context ctx;
+	Sha384Initialise(&ctx);
+	Sha384Update(&ctx, Buffer, BufferSize);
+	Sha384Finalise(&ctx, Digest);
 }
 
 #ifdef __cplusplus

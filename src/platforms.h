@@ -54,78 +54,83 @@
 
 #if HASH_USE_CUSTOM_MEM
 
-#if defined(__GNUC__) || defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull-compare"
-#endif
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-static void* libhash_memset(void* __s, int __c, size_t __n) {
-	unsigned char* p = uhash_cast(unsigned char*, __s);
-	unsigned char val = hash_cast(unsigned char, __c);
-
+static void* libhash_memset(void* s, int c, size_t n) {
+	unsigned char* p = uhash_cast(unsigned char*, s);
+	unsigned char val = hash_cast(unsigned char, c);
 #if defined(__GNUC__) || defined(__clang__)
-	for (size_t i = 0; i < __n; ++i) {
-		p[i] = val;
-	}
+	for (size_t i = 0; i < n; ++i) { p[i] = val; }
 #else
-	while (__n--) {
-		*p++ = val;
-	}
+	while (n--) { *p++ = val; }
 #endif
-	return __s;
+	return s;
 }
 
-static void* libhash_memcpy(void* __dest, const void* __src, size_t __n) {
-	unsigned char* d = uhash_cast(unsigned char*, __dest);
-	const unsigned char* s = uhash_cast(const unsigned char*, __src);
-
-#if defined(__GNUC__) || defined(__clang__)
-	for (size_t i = 0; i < __n; ++i) {
-		d[i] = s[i];
-	}
-#else
-	while (__n--) {
-		*d++ = *s++;
-	}
-#endif
-	return __dest;
+static void* libhash_memcpy(void* dest, const void* src, size_t n) {
+	unsigned char* d = uhash_cast(unsigned char*, dest);
+	const unsigned char* s = uhash_cast(const unsigned char*, src);
+	for (size_t i = 0; i < n; ++i) { d[i] = s[i]; }
+	return dest;
 }
 
-static unsigned long libhash_strlen(const char *__s) {
-	if (__s == NULL) {
-		return 0;
-	}
-	const char *p = __s;
-	while (*p) {
-		++p;
-	}
-	return hash_cast(unsigned long,p - __s);
+static size_t libhash_strlen(const char *s) {
+	if (s == NULL) { return 0; }
+	const char *p = s;
+	while (*p) { ++p; }
+	return hash_cast(size_t,p - s);
 }
 
 /**
  * Convert an ASCII character to lowercase.
  * Non-alphabetic characters are unchanged.
  */
-static int libhash_tolower(int __c) {
-	if (__c >= 'A' && __c <= 'Z') {
-		return __c + ('a' - 'A');
-	}
-	return __c;
+static int libhash_tolower(int c) {
+	if (c >= 'A' && c <= 'Z') return c + ('a' - 'A');
+	return c;
 }
 
 /**
  * Convert an ASCII character to uppercase.
  * Non-alphabetic characters are unchanged.
  */
-static int libhash_toupper(int __c) {
-	if (__c >= 'a' && __c <= 'z') {
-		return __c - ('a' - 'A');
+static int libhash_toupper(int c) {
+	if (c >= 'a' && c <= 'z') return c - ('a' - 'A');
+	return c;
+}
+
+static int libhash_isalpha(int c) {
+	return (c >= 'A' && c <= 'Z') ||
+		   (c >= 'a' && c <= 'z');
+}
+
+static int libhash_isspace(int c) {
+	return c == ' '  || c == '\t' || c == '\n' || c == '\v' || c == '\f' || c == '\r';
+}
+
+static void *libhash_realloc(void *ptr, size_t size) {
+	void *out = malloc(size);
+	if (out == NULL) {
+		free(ptr);
+		return NULL;
 	}
-	return __c;
+	libhash_memcpy(out,ptr, size);
+	return out;
+}
+
+static void *libhash_calloc(size_t nmemb, size_t size) {
+	if (nmemb != 0 && size > SIZE_MAX / nmemb) return NULL;
+	size_t total = nmemb * size;
+	void *ptr = malloc(total);
+	if (ptr == NULL) return NULL;
+	libhash_memset(ptr, 0, total);
+	return ptr;
 }
 
 #ifdef __cplusplus
@@ -133,16 +138,24 @@ static int libhash_toupper(int __c) {
 #endif
 
 // Override standard functions
-#define memset libhash_memset
-#define memcpy libhash_memcpy
-#define strlen libhash_strlen
+#define memset  libhash_memset
+#define memcpy  libhash_memcpy
+#define strlen  libhash_strlen
 #define tolower libhash_tolower
 #define toupper libhash_toupper
+#define isalpha libhash_isalpha
+#define isspace libhash_isspace
+#define realloc libhash_realloc
+#define calloc  libhash_calloc
 
 #else // HASH_USE_CUSTOM_MEM not enabled
 
 #include <ctype.h>
+#ifdef _WIN32
 #include <string.h>
+#else
+#include <memory.h>
+#endif
 
 #endif // HASH_USE_CUSTOM_MEM
 

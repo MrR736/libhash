@@ -11,7 +11,8 @@
  * June 2013 waterjuice.org
  */
 
-#pragma once
+#ifndef SHA1I_H
+#define SHA1I_H
 
 #include <stdint.h>
 
@@ -71,4 +72,6 @@ extern void Sha1Calculate(const void *Buffer, uint32_t BufferSize, SHA1_HASH *Di
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

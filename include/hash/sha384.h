@@ -9,7 +9,8 @@
  * 2013 waterjuice.org
  */
 
-#pragma once
+#ifndef __SHA384I_H__
+#define __SHA384I_H__
 
 #include <stdint.h>
 
@@ -64,3 +65,5 @@ extern void Sha384Calculate(const void*,uint32_t,SHA384_HASH*);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __SHA384I_H__ */

@@ -20,10 +20,8 @@
 #ifndef __MD5_H__
 #define __MD5_H__
 
-//  IMPORTS
 #include <stdint.h>
 #include <memory.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(inline)
 #define inline __inline
@@ -38,16 +36,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif

@@ -25,16 +25,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -129,7 +129,7 @@ LIBHASH_INLINE_API void Rc4Xor(Rc4Context *Context, const void *InBuffer, void *
 		Context->S[Context->i] = Context->S[Context->j];
 		Context->S[Context->j] = temp;
 		uhash_c_cast(uint8_t*, OutBuffer)[n] = (hash_c_cast(uint8_t*,InBuffer))[n]^
-			     (Context->S[(Context->S[Context->i]+Context->S[Context->j])%256]);
+				 (Context->S[(Context->S[Context->i]+Context->S[Context->j])%256]);
 	}
 }
 
@@ -142,9 +142,9 @@ LIBHASH_INLINE_API void Rc4Xor(Rc4Context *Context, const void *InBuffer, void *
  * location for inplace encrypting/decrypting
  */
 LIBHASH_INLINE_API void Rc4XorWithKey(const uint8_t *Key,uint32_t KeySize,uint32_t DropN,
-				      const void *InBuffer,void *OutBuffer,uint32_t BufferSize) {
+					  const void *InBuffer,void *OutBuffer,uint32_t BufferSize) {
 	Rc4Context context;
-	Rc4Initialise(&context, Key, KeySize, DropN);
+	Rc4Initialise(&context,Key,KeySize,DropN);
 	Rc4Xor(&context, InBuffer, OutBuffer, BufferSize);
 }
 

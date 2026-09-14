@@ -22,7 +22,6 @@
 
 #include <stdint.h>
 #include <memory.h>
-#include <string.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(inline)
 #define inline __inline
@@ -37,16 +36,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -781,7 +780,7 @@ LIBHASH_INLINE_API int AesInitialise(AesContext* Context, const void* Key, uint3
 		for(;;) {
 			temp = rk[7];
 			rk[8]  = rk[0]^((Te4_3[AES_BYTE(temp, 2)])^(Te4_2[AES_BYTE(temp, 1)]) ^
-			                 (Te4_1[AES_BYTE(temp, 0)])^(Te4_0[AES_BYTE(temp, 3)]))^rcon[i];
+							 (Te4_1[AES_BYTE(temp, 0)])^(Te4_0[AES_BYTE(temp, 3)]))^rcon[i];
 			rk[9]  = rk[1]^rk[8];
 			rk[10] = rk[2]^rk[9];
 			rk[11] = rk[3]^rk[10];

@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+
+Name: @PROJECT_NAME@
+Description: WjCryptLib  Fork
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lxjni
+Cflags: -I${includedir} -I${includedir}/xjni @JNI_CFLAGS@

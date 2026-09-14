@@ -20,7 +20,7 @@
 #ifndef __AESCBCI_H__
 #define __AESCBCI_H__
 
-#include <aes.h>
+#include "aes.h"
 
 #ifdef __cplusplus
 extern "C" {

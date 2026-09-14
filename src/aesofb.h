@@ -20,7 +20,7 @@
 #ifndef __AESOFB_H__
 #define __AESOFB_H__
 
-#include <aes.h>
+#include "aes.h"
 
 #define AESOFB_BLOCK_SIZE AES_BLOCK_SIZE
 
@@ -42,7 +42,7 @@ typedef struct {
  * lengthy processes of reinitialising an AES key.
  */
 LIBHASH_INLINE_API void AesOfbInitialise(AesOfbContext *Context,const AesContext *InitialisedAesContext,
-				    const uint8_t IV[AESOFB_BLOCK_SIZE]) {
+					const uint8_t IV[AESOFB_BLOCK_SIZE]) {
 	Context->Aes = *InitialisedAesContext;
 	memcpy(Context->CurrentCipherBlock, IV, sizeof(Context->CurrentCipherBlock));
 	Context->IndexWithinCipherBlock = 0;

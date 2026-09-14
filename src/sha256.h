@@ -36,16 +36,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -77,14 +77,14 @@
 #define SHA256_HASH_SIZE  32
 
 typedef struct {
-    uint64_t length;
-    uint32_t state[8];
-    uint32_t curlen;
-    uint8_t  buf[SHA256_BLOCK_SIZE];
+	uint64_t length;
+	uint32_t state[8];
+	uint32_t curlen;
+	uint8_t  buf[SHA256_BLOCK_SIZE];
 } Sha256Context;
 
 typedef struct {
-    uint8_t bytes[SHA256_HASH_SIZE];
+	uint8_t bytes[SHA256_HASH_SIZE];
 } SHA256_HASH;
 
 #ifdef __cplusplus
@@ -159,9 +159,9 @@ LIBHASH_INLINE_API void Sha256Initialise(Sha256Context* Context) {
  * calling this function until all the data has been added. Then call Sha256Finalise to calculate the hash.
  */
 LIBHASH_INLINE_API void Sha256Update(Sha256Context* Context, const void* Buffer, uint32_t BufferSize) {
-    uint32_t n;
-    if(Context->curlen > sizeof(Context->buf)) return;
-    while(BufferSize > 0) {
+	uint32_t n;
+	if(Context->curlen > sizeof(Context->buf)) return;
+	while(BufferSize > 0) {
 	if(Context->curlen == 0 && BufferSize >= SHA256_BLOCK_SIZE) {
 		Sha256TransformFunction(Context, hash_c_cast(uint8_t*,Buffer));
 		Context->length += (SHA256_BLOCK_SIZE * 8);
@@ -179,7 +179,7 @@ LIBHASH_INLINE_API void Sha256Update(Sha256Context* Context, const void* Buffer,
 			Context->curlen = 0;
 		}
 	}
-    }
+	}
 }
 
 /*

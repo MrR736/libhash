@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <strings.h>
 #include "sha256.h"  // Ensure it includes the functions you've defined
 
 static void print_hash(SHA256_HASH* digest) {

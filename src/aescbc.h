@@ -20,7 +20,7 @@
 #ifndef __AESCBC_H__
 #define __AESCBC_H__
 
-#include <aes.h>
+#include "aes.h"
 
 #define AESCBC_BLOCK_SIZE AES_BLOCK_SIZE
 
@@ -51,7 +51,7 @@ LIBHASH_INLINE_API void XorAesBlock(uint8_t *Block1, const uint8_t *Block2) {
  * more lengthy processes of reinitialising an AES key.
  */
 LIBHASH_INLINE_API void AesCbcInitialise(AesCbcContext *Context,const AesContext *InitialisedAesContext,
-				    const uint8_t IV[AESCBC_BLOCK_SIZE]) {
+					const uint8_t IV[AESCBC_BLOCK_SIZE]) {
 	Context->Aes = *InitialisedAesContext;
 	memcpy(Context->PreviousCipherBlock, IV, sizeof(Context->PreviousCipherBlock));
 }

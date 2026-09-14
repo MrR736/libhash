@@ -20,10 +20,17 @@
 #ifndef __BASE64_H__
 #define __BASE64_H__
 
-#include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
+
+#if !HASH_USE_CUSTOM_MEM
+# include <ctype.h>
+# ifdef _WIN32
+#  include <string.h>
+# else
+#  include <memory.h>
+# endif
+#endif
 
 #if defined(_MSC_VER) && _MSC_VER < 1900 && !defined(inline)
 #define inline __inline
@@ -38,16 +45,16 @@
 #endif
 
 #ifndef LIBHASH_EXPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_EXPORT __declspec(dllexport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_EXPORT __declspec(dllexport)
 #else
 #define LIBHASH_EXPORT LIBHASH_VISIBILITY(default)
 #endif
 #endif
 
 #ifndef LIBHASH_IMPORT
-#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
-#define LIBHASH_IMPORT __declspec(dllimport) LIBHASH_VISIBILITY(default)
+#ifdef _WIN32
+#define LIBHASH_IMPORT __declspec(dllimport)
 #else
 #define LIBHASH_IMPORT LIBHASH_VISIBILITY(default)
 #endif
@@ -105,21 +112,17 @@ LIBHASH_INLINE_API char *base64_encode_custom(const void *data, size_t len, cons
 		out[out_pos++] = cfg->alphabet[(triple >> 18) & 0x3F];
 		out[out_pos++] = cfg->alphabet[(triple >> 12) & 0x3F];
 
-		if (rem > 1)
-			out[out_pos++] = cfg->alphabet[(triple >> 6) & 0x3F];
-		else if (cfg->pad)
-			out[out_pos++] = cfg->pad;
+		if (rem > 1) out[out_pos++] = cfg->alphabet[(triple >> 6) & 0x3F];
+		else if (cfg->pad) out[out_pos++] = cfg->pad;
 
-		if (rem > 2)
-			out[out_pos++] = cfg->alphabet[triple & 0x3F];
-		else if (cfg->pad)
-			out[out_pos++] = cfg->pad;
+		if (rem > 2) out[out_pos++] = cfg->alphabet[triple & 0x3F];
+		else if (cfg->pad) out[out_pos++] = cfg->pad;
 	}
 
 	// Trim any '\0' if no padding
 	if (!cfg->pad) {
 		out[out_pos] = '\0';
-		char *tmp = realloc(out, out_pos + 1);
+		char *tmp = (char*)realloc(out, out_pos + 1);
 		return tmp ? tmp : out;
 	}
 
@@ -157,7 +160,7 @@ LIBHASH_INLINE_API int base64_decode_custom(const char *str, const base64_config
 		}
 	}
 
-	uint8_t *dst = malloc((slen * 3) / 4 + 3);
+	uint8_t *dst = (uint8_t*)malloc((slen * 3) / 4 + 3);
 	if (!dst) return BASE64_ERR_ALLOC_FAIL;
 
 	size_t out_pos = 0;
@@ -193,7 +196,7 @@ LIBHASH_INLINE_API int base64_decode_custom(const char *str, const base64_config
 		if (val_count == 4) {
 			dst[out_pos++] = (buf >> 16) & 0xFF;
 			dst[out_pos++] = (buf >> 8)  & 0xFF;
-			dst[out_pos++] =  buf        & 0xFF;
+			dst[out_pos++] =  buf		& 0xFF;
 			buf = 0;
 			val_count = 0;
 		}
@@ -215,7 +218,7 @@ LIBHASH_INLINE_API int base64_decode_custom(const char *str, const base64_config
 	}
 
 	/* shrink buffer */
-	uint8_t *tmp = realloc(dst, out_pos ? out_pos : 1);
+	uint8_t *tmp = (uint8_t*)realloc(dst, out_pos ? out_pos : 1);
 	if (!tmp) {
 		free(dst);
 		return BASE64_ERR_ALLOC_FAIL;
@@ -251,35 +254,46 @@ LIBHASH_INLINE_API int base64url_decode(const char *str, void **out, size_t *out
 
 /* ---------- MIME (RFC 2045) variant ---------- */
 LIBHASH_INLINE_API char *base64mime_encode(const void *data, size_t len) {
-	base64_config_t cfg = { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", '=', 0 };
-
-	// Encode using the base routine
+	base64_config_t cfg = { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", '=', 0};
 	char *raw = base64_encode_custom(data, len, &cfg);
-	if (!raw) return NULL;
-
+	if (raw == NULL) return NULL;
 	size_t raw_len = strlen(raw);
-	size_t lines = (raw_len + 75) / 76;
-	size_t out_len = raw_len + (lines - 1) * 2; // CRLF every 76 chars
-
-	char *out = (char*)malloc(out_len + 1);
-	if (!out) {
+	size_t lines = raw_len / 76;
+	if (raw_len % 76 != 0) ++lines;
+	size_t breaks = 0;
+	if (lines > 0) breaks = lines - 1;
+	if (breaks > SIZE_MAX / 2) {
 		free(raw);
 		return NULL;
 	}
-
-	size_t in_pos = 0, out_pos = 0;
-	for (size_t line = 0; line < lines; ++line) {
-		size_t chunk = (raw_len - in_pos >= 76) ? 76 : raw_len - in_pos;
+	size_t crlf_len = breaks * 2;
+	if (raw_len > SIZE_MAX - crlf_len) {
+		free(raw);
+		return NULL;
+	}
+	size_t out_len = raw_len + crlf_len;
+	if (out_len == SIZE_MAX) {
+		free(raw);
+		return NULL;
+	}
+	char *out = (char *)malloc(out_len + 1);
+	if (out == NULL) {
+		free(raw);
+		return NULL;
+	}
+	size_t in_pos = 0;
+	size_t out_pos = 0;
+	while (in_pos < raw_len) {
+		size_t remaining = raw_len - in_pos;
+		size_t chunk = remaining > 76 ? 76 : remaining;
 		memcpy(out + out_pos, raw + in_pos, chunk);
 		in_pos += chunk;
 		out_pos += chunk;
-
 		if (in_pos < raw_len) {
 			out[out_pos++] = '\r';
 			out[out_pos++] = '\n';
 		}
 	}
-
 	out[out_pos] = '\0';
 	free(raw);
 	return out;
